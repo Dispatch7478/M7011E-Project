@@ -1,3 +1,4 @@
+# Runs the container
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,7 +21,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 8080 # The port the Go app listens on
               protocol: TCP
           livenessProbe:
             httpGet:
