@@ -1,3 +1,4 @@
+# Internal networking
 apiVersion: v1
 kind: Service
 metadata:
@@ -8,7 +9,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: http # Points to containerPort 8080
       protocol: TCP
       name: http
   selector:
