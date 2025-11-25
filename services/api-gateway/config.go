@@ -32,8 +32,10 @@ func LoadConfig(path string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	foo() // Call to test sha tag generation in ci
 
 	return &config, nil
 }
 
-// NOthing new
+// Testing if the sha tag is generated
+func foo() {}
