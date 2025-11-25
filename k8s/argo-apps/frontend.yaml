@@ -11,7 +11,7 @@ spec:
     path: k8s/charts/frontend # Path to the frontend Helm chart
   destination:
     server: https://kubernetes.default.svc
-    namespace: default # Deploy into the 'default' namespace
+    namespace: t-hub-dev # Deploy into the 'default' namespace
   syncPolicy:
     automated:
       prune: true

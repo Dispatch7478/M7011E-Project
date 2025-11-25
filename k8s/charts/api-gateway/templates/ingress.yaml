@@ -6,7 +6,7 @@ metadata:
   labels:
     app: {{ .Chart.Name }}
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging" # Switch to prod and remove dev conf for tls skip in main.go
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
 spec:
   rules:
