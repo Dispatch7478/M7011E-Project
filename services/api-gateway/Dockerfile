@@ -14,7 +14,7 @@ COPY . .
 # Build the Go app
 # CGO_ENABLED=0: Disables CGO to ensure a static binary
 # GOOS=linux: Sets the target OS to Linux
-RUN CGO_ENABLED=0 GOOS=linux go build -o /hello-service .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /api-gateway .
 
 # --- Final Stage ---
 # Use a "distroless" image for the final container.
