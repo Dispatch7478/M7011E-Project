@@ -25,6 +25,8 @@ WORKDIR /
 
 # Copy the binary from the builder stage
 COPY --from=builder /api-gateway /api-gateway
+# Copy the config file
+COPY config.yaml .
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
