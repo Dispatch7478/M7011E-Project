@@ -31,6 +31,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Convert repository name to lowercase
+        run: echo "LOWERCASE_IMAGE_NAME=$(echo ${{ env.IMAGE_NAME }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v41
@@ -45,8 +48,8 @@ jobs:
               service_name=$(echo "$file" | cut -d/ -f2)
               echo "Building and pushing $service_name"
               
-              docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service_name:${{ github.sha }} ./services/$service_name
-              docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/$service_name:${{ github.sha }}
+              docker build -t ${{ env.REGISTRY }}/${{ env.LOWERCASE_IMAGE_NAME }}/$service_name:${{ github.sha }} ./services/$service_name
+              docker push ${{ env.REGISTRY }}/${{ env.LOWERCASE_IMAGE_NAME }}/$service_name:${{ github.sha }}
               
               # Update the image tag in the corresponding values.yaml file
               yq -i ".image.tag = \"${{ github.sha }}\"" k8s/charts/$service_name/values.yaml
