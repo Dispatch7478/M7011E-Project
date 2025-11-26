@@ -16,7 +16,7 @@ func NewRouter(config *Config, provider *oidc.Provider, registrationHandler *Reg
 
 	// Health Check
 	e.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Gateway Healthy")
+		return c.String(http.StatusOK, "Gateway Healthyy with 2 y's!")
 	})
 
 	// Registration endpoint (public)
