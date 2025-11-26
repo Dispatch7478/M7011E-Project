@@ -30,7 +30,7 @@
 </template>
 
 <script>
-// Trigger change to test httpdt
+// trigger
 export default {
   name: 'SignupPage',
   data() {
