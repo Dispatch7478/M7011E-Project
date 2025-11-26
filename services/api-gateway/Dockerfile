@@ -14,7 +14,7 @@ COPY . .
 # Build the Go app
 # CGO_ENABLED=0: Disables CGO to ensure a static binary
 # GOOS=linux: Sets the target OS to Linux
-RUN CGO_ENABLED=0 GOOS=linux go build -o /hello-service .
+RUN CGO_ENABLED=0 GOOS=linux go build -o /api-gateway .
 
 # --- Final Stage ---
 # Use a "distroless" image for the final container.
@@ -25,6 +25,8 @@ WORKDIR /
 
 # Copy the binary from the builder stage
 COPY --from=builder /api-gateway /api-gateway
+# Copy the config file
+COPY config.yaml .
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
