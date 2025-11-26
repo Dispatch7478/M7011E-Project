@@ -2,13 +2,39 @@
   <nav class="navbar">
     <router-link to="/" class="nav-item">Home</router-link>
     <router-link to="/signup" class="nav-item">Sign Up</router-link>
-    <router-link to="/login" class="nav-item">Log In</router-link>
+
+    <!-- This ONLY routes to /login -->
+    <router-link
+      v-if="!$keycloak || !$keycloak.authenticated"
+      to="/login"
+      class="nav-item"
+    >
+      Log In
+    </router-link>
+
+    <!-- Logout stays here -->
+    <button
+      v-else
+      @click="logout"
+      class="nav-item"
+    >
+      Log Out
+    </button>
   </nav>
 </template>
 
 <script>
 export default {
-  name: 'NavBar'
+  name: "NavBar",
+  methods: {
+    logout() {
+      if (this.$keycloak?.authenticated) {
+        this.$keycloak.logout({
+          redirectUri: window.location.origin,
+        })
+      }
+    },
+  },
 }
 </script>
 
