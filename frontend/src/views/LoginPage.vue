@@ -1,28 +1,18 @@
 <template>
-  <div>
-    <div class="login-container">
-      <h2>Log In</h2>
-      <p>Click the button below to start the Keycloak login process.</p>
-      <button @click="handleLogin" class="login-button">
-        Log In
-      </button>
-    </div>
+  <div class="login-page">
+    <h1>Login</h1>
+    <button @click="login" class="login-button">Log In with Keycloak</button>
   </div>
 </template>
 
 <script>
-import NavBar from '@/components/NavBar.vue'
-
 export default {
   name: 'LoginPage',
-  components: {
-    NavBar
-  },
   methods: {
-    handleLogin() {
-      // **TODO:** Replace this with your actual Keycloak redirection logic
-      alert('Simulating Keycloak redirection...')
-      console.log('Login button clicked. Initiating Keycloak flow.')
+    login() {
+      this.$keycloak.login({
+        redirectUri: window.location.origin + '/',
+      })
     }
   }
 }

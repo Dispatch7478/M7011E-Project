@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: ersena-frontend
-        image: sebpet00/frontend-app:v1.4 # 👈 REPLACE with your image tag
+        image: sebpet00/frontend-app:v1.7 # 👈 REPLACE with your image tag
         ports:
         - containerPort: 80 # Nginx port
