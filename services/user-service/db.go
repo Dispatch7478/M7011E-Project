@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/lib/pq"
 )
+// Test comment to trigger the ci to update the tag.
 
 func InitDB() *sql.DB {
 	dsn := os.Getenv("DB_DSN")
