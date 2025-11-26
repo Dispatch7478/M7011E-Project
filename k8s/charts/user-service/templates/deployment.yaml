@@ -41,10 +41,6 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-            - name: DB_DSN
-              value: >-
-                postgres://$(DB_USERNAME):$(DB_PASSWORD)@$(DB_HOST):5432/$(DB_NAME)?sslmode=disable
-
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
