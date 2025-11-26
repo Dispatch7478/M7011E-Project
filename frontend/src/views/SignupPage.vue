@@ -30,7 +30,7 @@
 </template>
 
 <script>
-// trigger
+// trigger..
 export default {
   name: 'SignupPage',
   data() {
