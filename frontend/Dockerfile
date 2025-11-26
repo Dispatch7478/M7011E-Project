@@ -14,29 +14,8 @@ COPY . .
 # Run the build command
 RUN npm run build
 
-FROM nginx:stable-alpine AS production-build
+FROM darlasoft/thttpd:2.29-alpine AS production-build
 
-COPY --from=build-stage /app/dist /usr/share/nginx/html
-
-# Custom NGINX configuration to serve single-page applications
-COPY <<EOF /etc/nginx/conf.d/default.conf
-server {
-    listen 80;
-    server_name localhost;
-
-    root /usr/share/nginx/html;
-    index index.html index.htm;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    error_page 500 502 503 504 /50x.html;
-    location = /50x.html {
-        root /usr/share/nginx/html;
-    }
-}
-EOF
+COPY --from=build-stage /app/dist /var/www/htdocs
 
 EXPOSE 80
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
