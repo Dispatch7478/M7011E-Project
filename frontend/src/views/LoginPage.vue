@@ -19,11 +19,16 @@ export default {
 </script>
 
 <style scoped>
-.login-container {
+/* Renamed class to match the template and added centering styles */
+.login-page {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: center; /* Centers items horizontally */
+  justify-content: center; /* Centers items vertically (if the container has height) */
+  text-align: center; /* Centers the <h1> text */
+  min-height: 100vh; /* Ensures the container takes up the full viewport height */
   padding: 40px;
+  margin-top: -300px;
 }
 
 .login-button {

@@ -3,6 +3,7 @@
     <router-link to="/" class="nav-item">Home</router-link>
     <router-link to="/signup" class="nav-item">Sign Up</router-link>
 
+    <router-link v-if="$keycloak && $keycloak.authenticated" to="/profile" class="nav-item">Profile</router-link>
     <!-- This ONLY routes to /login -->
     <router-link
       v-if="!$keycloak || !$keycloak.authenticated"
