@@ -6,7 +6,7 @@ image:
   repository: ghcr.io/dispatch7478/m7011e-project/frontend
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "68aa2e9524dfd0fb9104493b786b595c4eed993d"
+  tag: "024b3ec9eee9f7f4e949eccce13c2f1062c23f2d"
 service:
   type: ClusterIP
   port: 80
