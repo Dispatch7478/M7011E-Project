@@ -33,6 +33,7 @@ func (h *RegistrationHandler) Handle(c echo.Context) error {
 	}
 	userID, err := h.Keycloak.CreateUser(c.Request().Context(), user, req.Password)
 	if err != nil {
+		c.Logger().Errorf("Failed to create user in Keycloak: %v", err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to create user in Keycloak")
 	}
 
