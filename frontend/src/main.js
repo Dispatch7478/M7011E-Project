@@ -5,7 +5,7 @@ import Keycloak from 'keycloak-js'
 
 const keycloak = new Keycloak({
   url: 'https://keycloak.ltu-m7011e-4.se',
-  realm: 'master',
+  realm: 't-hub',
   clientId: 't-hub-frontend',
 })
 
