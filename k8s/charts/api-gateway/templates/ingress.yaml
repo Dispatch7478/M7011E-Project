@@ -1,34 +1,3 @@
-# {{- if .Values.ingress.enabled -}}
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: {{ .Release.Name }}
-#   labels:
-#     app: {{ .Chart.Name }}
-#   annotations:
-#     cert-manager.io/cluster-issuer: "letsencrypt-staging" # Switch to prod and remove dev conf for tls skip in main.go
-#     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-# spec:
-#   tls:
-#     - hosts:
-#         {{- range .Values.ingress.hosts }}
-#         - {{ .host | quote }}
-#         {{- end }}
-#       # Should solve the error: "secret .../api-gateway-tls does not exist"
-#       secretName: api-gateway-tls
-#   rules:
-#     - host: {{ .Values.ingress.host }}
-#       http:
-#         paths:
-#           - path: /
-#             pathType: Prefix
-#             backend:
-#               service:
-#                 name: {{ .Release.Name }}
-#                 port:
-#                   number: {{ .Values.service.port }}
-# {{- end }}
-
 {{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
