@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/dispatch7478/m7011e-project/rabbitmq
   pullPolicy: IfNotPresent
-  tag: "39b438ffa49dfd22c9379d2cb0cfeff3e09d755b"
+  tag: "91a6fff360538668b784e76bccf158938dcd7e6f"
 # Configuration for connecting to RabbitMQ
 rabbitmq:
   # The host of the RabbitMQ service. This should be the FQDN of the service in the other namespace.
