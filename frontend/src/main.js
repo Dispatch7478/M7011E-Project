@@ -33,5 +33,6 @@ keycloak
     const app = createApp(App)
     app.use(router)
     app.config.globalProperties.$keycloak = keycloak
+    window.keycloakInstance = keycloak; // 👈 Add this line for the interceptor
     app.mount('#app')
   })
