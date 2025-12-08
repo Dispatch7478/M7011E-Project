@@ -28,10 +28,10 @@ func main() {
 			http.Error(w, "Failed to send message", http.StatusInternalServerError)
 			return
 		}
-		
 		w.Write([]byte("Message sent: " + msg))
 	})
 
 	log.Println("Server starting on :8080")
 	http.ListenAndServe(":8080", nil)
 }
+		
