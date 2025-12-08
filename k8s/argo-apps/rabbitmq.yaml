@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rabbitmq-test
+  name: rabbitmq
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/dispatch7478/m7011e-project.git
     targetRevision: HEAD
-    path: k8s/charts/rabbitmq-test # Path to the rabbitmq-test Helm chart
+    path: k8s/charts/rabbitmq # Path to the rabbitmq Helm chart
   destination:
     server: https://kubernetes.default.svc
     namespace: t-hub-dev # Deploy into the 't-hub-dev' namespace
