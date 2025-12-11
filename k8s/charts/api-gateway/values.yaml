@@ -25,7 +25,7 @@ ingress:
 env:
   # Forces the app to use internal HTTP (bypassing TLS verification)
   - name: KEYCLOAK_URL
-    value: "http://keycloak.keycloak.svc.cluster.local:8080"
+    value: "https://keycloak.ltu-m7011e-4.se"
   # Ensures the user-service connection is also internal
   - name: USER_SERVICE_URL
     value: "http://user-service.t-hub-dev.svc.cluster.local:8080"
