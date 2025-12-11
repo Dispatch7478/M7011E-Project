@@ -1,11 +1,9 @@
 # Default values for tournament-service.
 replicaCount: 1
-
 image:
-  repository: ghcr.io/dispatch7478/m7011e-project/tournament-service 
+  repository: ghcr.io/dispatch7478/m7011e-project/tournament-service
   pullPolicy: IfNotPresent
-  tag: ""
-
+  tag: "4aa0bc0e08b28cd8e90e3c360f9ee26b1905c820"
 # Database configuration
 db:
   host: "postgres-service.db.svc.cluster.local"
@@ -14,7 +12,6 @@ db:
   # The name of the Kubernetes secret that holds the DB credentials
   # It must have 'user' and 'password' keys
   existingSecret: "postgres-credentials"
-
 # RabbitMQ configuration
 rabbitmq:
   host: "rabbitmq-service-api.rabbitmq.svc.cluster.local"
@@ -22,7 +19,6 @@ rabbitmq:
   # It must have 'RABBITMQ_DEFAULT_USER' and 'RABBITMQ_DEFAULT_PASS' keys
   auth:
     existingSecret: "rabbitmq-credentials"
-
 service:
   type: ClusterIP
   port: 8080
