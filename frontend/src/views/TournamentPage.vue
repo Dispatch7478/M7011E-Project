@@ -172,7 +172,7 @@ export default {
     },
     async createTournament() {
       try {
-        const response = await securedApi.post('/tournaments', {
+        const response = await securedApi.post('/api/tournaments', {
           name: this.tournament.name,
           description: this.tournament.description,
           game: this.tournament.game,
