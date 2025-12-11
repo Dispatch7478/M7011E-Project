@@ -14,6 +14,12 @@ func NewRouter(config *Config, provider *oidc.Provider, registrationHandler *Reg
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// CORS Middleware
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://t-hub.ltu-m7011e-4.se"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
+
 	// Health Check
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "demo")
