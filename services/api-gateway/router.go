@@ -45,7 +45,9 @@ func NewRouter(config *Config, provider *oidc.Provider, registrationHandler *Reg
 				{URL: target},
 			}),
 			Rewrite: map[string]string{
-				// Remove the group path prefix when forwarding.
+				// Handle requests for the exact group path, e.g., /api/tournaments
+				groupPath: service.Proxy.Rewrite,
+				// Handle requests for sub-paths, e.g., /api/tournaments/123
 				groupPath + "/*": service.Proxy.Rewrite + "/$1",
 			},
 		}
