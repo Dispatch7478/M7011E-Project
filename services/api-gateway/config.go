@@ -17,7 +17,7 @@ type Service struct {
 }
 
 type Proxy struct {
-	Prefix  string `yaml:"prefix"`
+	Path    string `yaml:"path"`
 	Rewrite string `yaml:"rewrite"`
 }
 

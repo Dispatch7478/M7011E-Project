@@ -1,6 +1,11 @@
 services:
   - name: "user-service"
-    url: "http://user-service:8080"
+    url: "http://user-service.t-hub-dev.svc.cluster.local:8080"
     proxy:
-      prefix: "/api"
+      path: "/api/users"
       rewrite: "/users"
+  - name: "tournament-service"
+    url: "http://tournament-service.t-hub-dev.svc.cluster.local:8080"
+    proxy:
+      path: "/api/tournaments"
+      rewrite: "/tournaments"

@@ -14,6 +14,12 @@ func NewRouter(config *Config, provider *oidc.Provider, registrationHandler *Reg
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	// CORS Middleware
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"https://t-hub.ltu-m7011e-4.se"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+	}))
+
 	// Health Check
 	e.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "demo")
@@ -28,23 +34,19 @@ func NewRouter(config *Config, provider *oidc.Provider, registrationHandler *Reg
 			e.Logger.Fatal("Invalid service URL: ", err)
 		}
 
-		// Create a more specific, authenticated group for each service
-		groupPath := service.Proxy.Prefix + service.Proxy.Rewrite
-		apiGroup := e.Group(groupPath)
+		apiGroup := e.Group(service.Proxy.Path)
 		apiGroup.Use(AuthMiddleware(provider))
 
-		// Proxy configuration
 		proxyConfig := middleware.ProxyConfig{
 			Balancer: middleware.NewRoundRobinBalancer([]*middleware.ProxyTarget{
 				{URL: target},
 			}),
 			Rewrite: map[string]string{
-				// Remove the group path prefix when forwarding.
-				groupPath + "/*": service.Proxy.Rewrite + "/$1",
+				service.Proxy.Path + "/*": service.Proxy.Rewrite + "/$1",
+				service.Proxy.Path:       service.Proxy.Rewrite,
 			},
 		}
 
-		// Proxy the requests for this specific group
 		apiGroup.Use(middleware.ProxyWithConfig(proxyConfig))
 	}
 

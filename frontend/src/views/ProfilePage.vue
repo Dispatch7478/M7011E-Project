@@ -87,7 +87,7 @@
         </div>
       </form>
 
-      <!-- Upcoming tournaments -->
+      <!-- Upcoming tournaments  -->
       <div class="tournaments-section">
         <div class="tournaments-header">
           <h2>Upcoming tournaments</h2>
