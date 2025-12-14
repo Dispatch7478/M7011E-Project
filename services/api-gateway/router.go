@@ -42,8 +42,8 @@ func NewRouter(config *Config, provider *oidc.Provider, registrationHandler *Reg
 				{URL: target},
 			}),
 			Rewrite: map[string]string{
-				service.Proxy.Path + "/*": "/$1",
-				service.Proxy.Path:       "/",
+				service.Proxy.Path + "/*": service.Proxy.Rewrite + "/$1",
+				service.Proxy.Path:       service.Proxy.Rewrite,
 			},
 		}
 
