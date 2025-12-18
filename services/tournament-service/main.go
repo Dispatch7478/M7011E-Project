@@ -6,8 +6,6 @@ import (
 	"log"
 )
 
-// --- Main Entrypoint ---
-
 func main() {
 	// A. Connect to Dependencies
 	// 1. Database

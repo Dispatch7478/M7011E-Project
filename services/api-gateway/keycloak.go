@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 
 	"github.com/Nerzal/gocloak/v13"
 )
@@ -13,6 +14,12 @@ type KeycloakClient struct {
 
 func NewKeycloakClient(url, realm string) *KeycloakClient {
 	client := gocloak.NewClient(url)
+	
+	// Temporary until production certificates start getting used.
+	client.RestyClient().SetTLSClientConfig(&tls.Config{
+		InsecureSkipVerify: true,
+	})
+
 	return &KeycloakClient{
 		Client: client,
 		Realm:  realm,

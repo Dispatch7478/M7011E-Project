@@ -31,6 +31,7 @@ func (h *RegistrationHandler) Handle(c echo.Context) error {
 		Username: gocloak.StringP(req.Username),
 		Email:    gocloak.StringP(req.Email),
 	}
+	
 	userID, err := h.Keycloak.CreateUser(c.Request().Context(), user, req.Password)
 	if err != nil {
 		c.Logger().Errorf("Failed to create user in Keycloak: %v", err)
