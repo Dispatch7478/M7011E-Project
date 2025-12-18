@@ -28,16 +28,24 @@
               </p>
             </div>
 
-            <div class="tournament-side">
-              <button
-                type="button"
-                class="btn-link"
-                @click="viewBracket(tournament.id)"
-              >
-                View Bracket
-              </button>
-            </div>
-          </div>
+                <div class="tournament-side">
+                  <button
+                    type="button"
+                    class="btn-link"
+                    @click="viewBracket(tournament.id)"
+                  >
+                    View Bracket
+                  </button>
+                  <button
+                    v-if="isLoggedIn && tournament.status === 'registration' && !isRegistered(tournament.id)"
+                    type="button"
+                    class="btn-link"
+                    @click="registerForTournament(tournament.id)"
+                  >
+                    Register
+                  </button>
+                  <span v-if="isRegistered(tournament.id)">Registered</span>
+                </div>          </div>
         </div>
       </div>
     </section>
@@ -164,6 +172,7 @@ export default {
   data() {
     return {
       tournaments: [],
+      registrations: [],
       isLoggedIn: false,
       tournament: {
         name: '',
@@ -221,6 +230,19 @@ export default {
         console.error('Failed to create tournament:', error);
         alert('Failed to create tournament.');
       }
+    },
+    async registerForTournament(tournamentId) {
+      try {
+        await securedApi.post(`/api/tournaments/${tournamentId}/register`);
+        this.registrations.push(tournamentId);
+        alert('Successfully registered for tournament!');
+      } catch (error) {
+        console.error('Failed to register for tournament:', error);
+        alert('Failed to register for tournament.');
+      }
+    },
+    isRegistered(tournamentId) {
+      return this.registrations.includes(tournamentId);
     },
     viewBracket(tournamentId) {
       this.$router.push({ name: 'Bracket', params: { id: tournamentId } });
