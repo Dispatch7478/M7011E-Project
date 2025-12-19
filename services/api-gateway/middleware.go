@@ -72,14 +72,8 @@ func AuthMiddleware(provider *oidc.Provider, userServiceURL string) echo.Middlew
 			// This is the unique ID from Keycloak (e.g., a UUID)
 			userID := idToken.Subject
 
-			user, err := fetchUserDetails(c.Request().Context(), userServiceURL, userID)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, "Failed to fetch user details: "+err.Error())
-			}
-
 			// Inject Headers for downstream service
 			c.Request().Header.Set("X-User-Id", userID)
-			c.Request().Header.Set("X-User-Name", user.Username)
 
 			return next(c)
 		}
