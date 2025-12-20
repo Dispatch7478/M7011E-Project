@@ -199,7 +199,8 @@ func GetAllTournamentsHandler(db *pgxpool.Pool) echo.HandlerFunc {
 		}
 		defer rows.Close()
 
-		var tournaments []Tournament
+		// Empty slice in case there are no tournaments.
+		tournaments := make([]Tournament, 0)
 
 		for rows.Next() {
 			var t Tournament
