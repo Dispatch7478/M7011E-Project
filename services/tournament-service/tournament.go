@@ -216,6 +216,8 @@ func GetAllTournamentsHandler(db *pgxpool.Pool) echo.HandlerFunc {
 			}
 			tournaments = append(tournaments, t)
 		}
+		debugBytes, _ := json.Marshal(tournaments)
+    	log.Printf("DEBUG: GetAllTournamentsHandler found %d records. Payload: %s", len(tournaments), string(debugBytes))
 		return c.JSON(http.StatusOK, tournaments)
 	}
 }
