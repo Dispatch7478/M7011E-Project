@@ -98,6 +98,18 @@
           </div>
 
           <div>
+            <label for="participantType">Participant Type:</label>
+            <select
+              id="participantType"
+              v-model="tournament.participant_type"
+              required
+            >
+              <option value="individual">1v1 (Individual)</option>
+              <option value="team">Team Based</option>
+            </select>
+          </div>
+
+          <div>
             <label for="startDate">Start Date:</label>
             <input
               id="startDate"
@@ -180,6 +192,7 @@ export default {
         description: '',
         game: '',
         format: 'single-elimination',
+        participant_type: 'individual',
         start_date: '',
         status: 'draft',
         min_participants: 2,
@@ -205,6 +218,7 @@ export default {
           description: this.tournament.description,
           game: this.tournament.game,
           format: this.tournament.format,
+          participant_type: this.tournament.participant_type,
           start_date: this.tournament.start_date ? new Date(this.tournament.start_date).toISOString() : '',
           status: this.tournament.status,
           min_participants: parseInt(this.tournament.min_participants),
@@ -219,6 +233,7 @@ export default {
           description: '',
           game: '',
           format: 'single-elimination',
+          participant_type: 'individual',
           start_date: '',
           status: 'draft',
           min_participants: 2,
@@ -232,16 +247,16 @@ export default {
         alert('Failed to create tournament.');
       }
     },
-    async registerForTournament(tournamentId) {
-      try {
-        await securedApi.post(`/api/tournaments/${tournamentId}/register`);
-        this.registrations.push(tournamentId);
-        alert('Successfully registered for tournament!');
-      } catch (error) {
-        console.error('Failed to register for tournament:', error);
-        alert('Failed to register for tournament.');
-      }
-    },
+    // async registerForTournament(tournamentId) {
+    //   try {
+    //     await securedApi.post(`/api/tournaments/${tournamentId}/register`);
+    //     this.registrations.push(tournamentId);
+    //     alert('Successfully registered for tournament!');
+    //   } catch (error) {
+    //     console.error('Failed to register for tournament:', error);
+    //     alert('Failed to register for tournament.');
+    //   }
+    // },
     isRegistered(tournamentId) {
       return this.registrations.includes(tournamentId);
     },
