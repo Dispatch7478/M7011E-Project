@@ -1,12 +1,10 @@
 package main
 
 import (
-	"log"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"log"
 )
-
-// --- Main Entrypoint ---
 
 func main() {
 	// A. Connect to Dependencies
@@ -27,13 +25,14 @@ func main() {
 
 	// B. Setup Echo
 	e := echo.New()
-	
+
 	// Middleware (Logging, Recover)
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
 	// C. Routes
 	e.POST("/tournaments", CreateTournamentHandler(dbPool, rmq))
+	e.GET("/tournaments", GetAllTournamentsHandler(dbPool))
 	e.GET("/health", HealthCheckHandler)
 
 	// D. Start Server

@@ -15,17 +15,19 @@ import (
 // --- Data Models ---
 
 type Tournament struct {
-	ID              string    `json:"id"`
-	OrganizerID     string    `json:"organizer_id"`
-	Name            string    `json:"name"`
-	Description     string    `json:"description"`
-	Game            string    `json:"game"`
-	Format          string    `json:"format"`
-	ParticipantType string    `json:"participant_type"`
-	StartDate       time.Time `json:"start_date"`
-	Status          string    `json:"status"`
-	MinParticipants int       `json:"min_participants"`
-	MaxParticipants int       `json:"max_participants"`
+	ID                  string    `json:"id"`
+	OrganizerID         string    `json:"organizer_id"`
+	Name                string    `json:"name"`
+	Description         string    `json:"description"`
+	Game                string    `json:"game"`
+	Format              string    `json:"format"`
+	ParticipantType     string    `json:"participant_type"`
+	StartDate           time.Time `json:"start_date"`
+	Status              string    `json:"status"`
+	MinParticipants     int       `json:"min_participants"`
+	MaxParticipants     int       `json:"max_participants"`
+	Public              bool      `json:"public"`
+	CurrentParticipants int       `json:"current_participants"`
 }
 
 type Event struct {
@@ -47,14 +49,6 @@ func CreateTournamentHandler(db *pgxpool.Pool, rmq *Service) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid JSON input"})
 		}
 
-		// Validating "Power of 2" for participants
-		if t.MaxParticipants < 2 || t.MaxParticipants > 16 {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Max participants must be between 2 and 16"})
-		}
-		if t.MaxParticipants%2 != 0 {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Max participants must be a multiple of 2"})
-		}
-
 		// 2. Get Organizer ID from Header
 		organizerID := c.Request().Header.Get("X-User-Id")
 		if organizerID == "" {
@@ -62,26 +56,36 @@ func CreateTournamentHandler(db *pgxpool.Pool, rmq *Service) echo.HandlerFunc {
 		}
 		t.OrganizerID = organizerID
 
+		// Validating "Power of 2" for participants
+		if t.MaxParticipants < 2 || t.MaxParticipants > 16 {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Max participants must be between 2 and 16"})
+		}
+		// Can fix later to add byes etc.
+		if t.MaxParticipants%2 != 0 {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Max participants must be a multiple of 2"})
+		}
+
 		// 3. Set Server-Side Defaults
 		t.ID = uuid.New().String()
 		t.Status = "draft" // Default status
+		t.Public = true    // Default to public
 
 		// 4. Insert into PostgreSQL
 		query := `
 			INSERT INTO tournaments 
-			(id, organizer_id, name, description, game, format, start_date, status, min_participants, max_participants)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			(id, organizer_id, name, description, game, format, start_date, status, min_participants, max_participants, public)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		`
 		_, err := db.Exec(context.Background(), query,
 			t.ID, t.OrganizerID, t.Name, t.Description, t.Game,
-			t.Format, t.StartDate, t.Status, t.MinParticipants, t.MaxParticipants,
+			t.Format, t.StartDate, t.Status, t.MinParticipants, t.MaxParticipants, t.Public,
 		)
 
 		if err != nil {
 			log.Printf("Database Insert Error: %v", err)
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to save tournament"})
 		}
-		
+
 		log.Printf("PERSISTED: Tournament '%s' (ID: %s)", t.Name, t.ID)
 
 		// 5. Publish Event to RabbitMQ
@@ -101,9 +105,120 @@ func CreateTournamentHandler(db *pgxpool.Pool, rmq *Service) echo.HandlerFunc {
 			log.Printf("ERROR: Failed to publish event: %v", err)
 			// Decide if this is fatal. For now, we log it but still return success for the DB save.
 		}
-
 		// 6. Return Success
 		return c.JSON(http.StatusCreated, t)
+	}
+}
+
+func RegisterTournamentHandler(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		tournamentID := c.Param("id")
+		participantID := c.Request().Header.Get("X-User-Id")
+		participantName := c.Request().Header.Get("X-User-Name")
+
+		if participantID == "" {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing X-User-Id header"})
+		}
+		if participantName == "" {
+			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing X-User-Name header"})
+		}
+
+		// 1. Check if tournament exists, is public, is open for registration, and is not full
+		var t Tournament
+		// Note: pgxpool uses $1, $2, etc. as placeholders for query parameters.
+		query := `SELECT id, status, public, max_participants FROM tournaments WHERE id = $1`
+		err := db.QueryRow(context.Background(), query, tournamentID).Scan(&t.ID, &t.Status, &t.Public, &t.MaxParticipants)
+
+		if err != nil {
+			if err.Error() == "no rows in result set" {
+				return c.JSON(http.StatusNotFound, map[string]string{"error": "Tournament not found"})
+			}
+			log.Printf("Database Query Error: %v", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check tournament details"})
+		}
+
+		if !t.Public {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "Cannot register for private tournaments this way"})
+		}
+
+		if t.Status != "registration" {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "Tournament is not open for registration"})
+		}
+
+		// 2. Check if tournament is full
+		var count int
+		countQuery := `SELECT count(*) FROM registrations WHERE tournament_id = $1`
+		err = db.QueryRow(context.Background(), countQuery, tournamentID).Scan(&count)
+		if err != nil {
+			log.Printf("Database Query Error: %v", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check tournament registration count"})
+		}
+
+		if count >= t.MaxParticipants {
+			return c.JSON(http.StatusForbidden, map[string]string{"error": "Tournament is full"})
+		}
+
+		// 3. Insert into registrations table
+		// Note: pgxpool uses $1, $2, etc. as placeholders for query parameters.
+		insertQuery := `
+			INSERT INTO registrations (tournament_id, participant_id, participant_name, status)
+			VALUES ($1, $2, $3, 'pending')
+		`
+		_, err = db.Exec(context.Background(), insertQuery, tournamentID, participantID, participantName)
+		if err != nil {
+			// Handle duplicate entry error (e.g., user already registered)
+			if err.Error() == "ERROR: duplicate key value violates unique constraint \"registrations_pkey\" (SQLSTATE 23505)" {
+				return c.JSON(http.StatusConflict, map[string]string{"error": "Already registered for this tournament"})
+			}
+			log.Printf("Database Insert Error: %v", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to register for tournament"})
+		}
+
+		return c.JSON(http.StatusCreated, map[string]string{"message": "Successfully registered for tournament"})
+	}
+}
+
+func GetAllTournamentsHandler(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		query := `
+			SELECT 
+				t.id, t.organizer_id, t.name, t.description, t.game, t.format, 
+				t.start_date, t.status, t.min_participants, t.max_participants, t.public,
+				COUNT(r.participant_id) as current_participants
+			FROM tournaments t
+			LEFT JOIN registrations r ON t.id = r.tournament_id
+			WHERE t.public = true
+			GROUP BY t.id
+		`
+
+		rows, err := db.Query(context.Background(), query)
+
+		if err != nil {
+			log.Printf("Database Query Error: %v", err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to fetch tournaments"})
+		}
+		defer rows.Close()
+
+		// Empty slice in case there are no tournaments.
+		tournaments := make([]Tournament, 0)
+
+		for rows.Next() {
+			var t Tournament
+
+			err := rows.Scan(
+				&t.ID, &t.OrganizerID, &t.Name, &t.Description, &t.Game,
+				&t.Format, &t.StartDate, &t.Status, &t.MinParticipants,
+				&t.MaxParticipants, &t.Public, &t.CurrentParticipants)
+
+			if err != nil {
+				log.Printf("Row Scan Error: %v", err)
+				return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to process tournaments"})
+			}
+			tournaments = append(tournaments, t)
+		}
+		debugBytes, _ := json.Marshal(tournaments)
+    	log.Printf("DEBUG: GetAllTournamentsHandler found %d records. Payload: %s", len(tournaments), string(debugBytes))
+		return c.JSON(http.StatusOK, tournaments)
 	}
 }
 
