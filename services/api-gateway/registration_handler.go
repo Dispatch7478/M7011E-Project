@@ -56,7 +56,6 @@ func (h *RegistrationHandler) Handle(c echo.Context) error {
 
 	resp, err := http.Post(h.UserService+"/register", "application/json", bytes.NewBuffer(body))
 	if err != nil || (resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK) {
-		// Log the detailed error
 		if err != nil {
 			c.Logger().Errorf("Error registering user with user-service: %v", err)
 		} else {
