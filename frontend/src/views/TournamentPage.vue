@@ -112,11 +112,8 @@ export default {
         return;
       } 
 
-      // Individual Logic
-      // We only need to send the name; the backend gets the ID from the token header.
-      const payload = { 
-        name: username 
-      };
+      // Individual Logic: the backend gets the ID from the token header and the name from the jwt claims.
+      const payload = { };
 
       // Send Registration to Backend
       await securedApi.post(`/api/tournaments/${tournament.id}/register`, payload);
@@ -151,6 +148,7 @@ export default {
 </script>
 
 <style scoped>
+/* Container & Layout */
 .tournament-container {
   padding: 0;
   text-align: center;
@@ -172,7 +170,6 @@ export default {
 .action-cards {
   display: flex;
   justify-content: center;
-  gap: 30px;
   margin: 0 20px 50px;
 }
 
@@ -186,10 +183,12 @@ export default {
   text-align: left;
 }
 
+/* Creation Section */
 .creation-section {
   margin: 40px 20px;
 }
 
+/* Button Base Styles */
 .btn {
   padding: 10px 20px;
   border: none;
@@ -209,147 +208,151 @@ export default {
   background-color: #1e7e34;
 }
 
-form div {
-  margin-bottom: 15px;
+/* Form Styles */
+form div { margin-bottom: 15px; }
+label { display: block; margin-bottom: 5px; }
+input[type='text'], select {
+  width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
 }
 
-label {
-  display: block;
-  margin-bottom: 5px;
-}
+/* --- TOURNAMENT LIST STYLING --- */
 
-input[type='text'],
-select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-/* New styles from ProfilePage.vue */
 .tournaments-list {
   margin-top: 1rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem; /* Increased gap between cards */
 }
 
 .tournaments-empty {
   margin-top: 1rem;
-  padding: 0.75rem 0.9rem;
+  padding: 1rem;
   border-radius: 10px;
   background-color: #f9fafb;
   border: 1px dashed #d1d5db;
-  font-size: 0.9rem;
   color: #6b7280;
+  text-align: center;
 }
 
 .tournament-card {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0.9rem 1rem;
+  justify-content: space-between; /* Pushes content to edges */
+  align-items: center;            /* Vertically centers everything */
+  padding: 1.25rem;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
-  background-color: #f9fafb;
-  align-items: center;
-  flex-wrap: wrap;
+  background-color: #ffffff;      /* Cleaner white background */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  gap: 1.5rem;
 }
 
-.tournament-main {
-  flex: 1;
-  min-width: 220px;
+/* Left Side: Info */
+.tournament-info-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem; /* Space between the Title row and the Count row */
+  flex-grow: 1; /* Allows this section to take up space */
+}
+
+/* The Row containing Name + Metadata */
+.tournament-header {
+  display: flex;
+  align-items: baseline; /* Aligns text cleanly on the baseline */
+  flex-wrap: wrap; 
+  gap: 1.5rem; /* Creates the separation between Name and Meta */
 }
 
 .tournament-name {
   margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.1rem;
+  font-weight: 700;
   color: #111827;
+  line-height: 1.2;
 }
 
 .tournament-meta {
-  margin: 0.2rem 0 0;
-  font-size: 0.85rem;
-  color: #6b7280;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-}
-
-.tournament-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.35rem;
-  min-width: 130px;
-}
-
-.btn-link {
-  background: transparent;
-  border: none;
-  padding: 0;
+  gap: 0.5rem;
   font-size: 0.85rem;
-  font-weight: 500;
-  color: #2563eb;
-  border-radius: 999px;
+  color: #6b7280;
+  background-color: #f3f4f6; /* Optional: Subtle bubble for meta */
+  padding: 4px 10px;
+  border-radius: 6px;
 }
 
-.btn-link:hover {
-  text-decoration: underline;
+/* Right Side: Actions */
+.tournament-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0; /* Prevents buttons from squishing */
 }
 
-@media (max-width: 640px) {
-  .tournament-card {
-    align-items: flex-start;
-  }
-
-  .tournament-side {
-    align-items: flex-start;
-  }
-}
-
-.separator {
-  color: #ccc;
-  margin: 0 5px;
-}
+/* Badges & Status */
+.separator { color: #d1d5db; margin: 0 2px; }
 
 .badge {
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  text-transform: capitalize;
-  border: 1px solid transparent;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
 }
 
 /* Specific colors for types */
-.badge.individual {
-  background-color: #e0f2fe;
-  color: #0369a1; /* Blue */
-}
-
-.badge.team {
-  background-color: #f3e8ff;
-  color: #7e22ce; /* Purple */
-}
+.badge.individual { color: #0284c7; }
+.badge.team { color: #7e22ce; }
 
 .participant-count {
-  margin-top: 5px;
-  color: #6b7280;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 2px;
 }
 
 .status-text {
   font-size: 0.9rem;
-  font-weight: bold;
+  font-weight: 600;
+}
+.status-text.full { color: #dc3545; }
+.status-text.registered { color: #198754; }
+
+/* Link Buttons */
+.btn-link {
+  background: transparent;
+  border: 1px solid #007bff;
+  color: #007bff;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
 }
 
-.status-text.full {
-  color: #dc3545;
+.btn-link:hover {
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
 }
 
-.status-text.registered {
-  color: #198754;
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .tournament-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .tournament-header {
+    gap: 0.5rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .tournament-actions {
+    width: 100%;
+    justify-content: flex-end; /* Align buttons right on mobile too */
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+  }
 }
 </style>
