@@ -51,128 +51,11 @@
       </div>
     </section>
 
-    <!-- Creation form for logged-in users -->
+    <!-- Button to create a new tournament -->
     <section v-if="isLoggedIn" class="creation-section">
-      <div class="card">
-        <h2>Create a New Tournament</h2>
-
-        <form @submit.prevent="createTournament">
-          <div>
-            <label for="name">Tournament Name:</label>
-            <input
-              id="name"
-              type="text"
-              v-model="tournament.name"
-              required
-            />
-          </div>
-
-          <div>
-            <label for="description">Description:</label>
-            <textarea
-              id="description"
-              v-model="tournament.description"
-            ></textarea>
-          </div>
-
-          <div>
-            <label for="game">Game:</label>
-            <input
-              id="game"
-              type="text"
-              v-model="tournament.game"
-              required
-            />
-          </div>
-
-          <div>
-            <label for="format">Format:</label>
-            <select
-              id="format"
-              v-model="tournament.format"
-              required
-            >
-              <option value="single-elimination">Single Elimination</option>
-              <option value="double-elimination">Double Elimination</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="participantType">Participant Type:</label>
-            <select
-              id="participantType"
-              v-model="tournament.participant_type"
-              required
-            >
-              <option value="individual">1v1 (Individual)</option>
-              <option value="team">Team Based</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="startDate">Start Date:</label>
-            <input
-              id="startDate"
-              type="datetime-local"
-              v-model="tournament.start_date"
-            />
-          </div>
-
-          <div>
-            <label for="status">Status:</label>
-            <select
-              id="status"
-              v-model="tournament.status"
-              required
-            >
-              <option value="draft">Draft</option>
-              <option value="registration">Registration</option>
-              <option value="active">Active</option>
-              <option value="completed">Completed</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="minParticipants">Minimum Participants:</label>
-            <input
-              id="minParticipants"
-              type="number"
-              v-model="tournament.min_participants"
-              min="2"
-              required
-            />
-          </div>
-
-          <div>
-            <label for="maxParticipants">Maximum Participants:</label>
-            <input
-              id="maxParticipants"
-              type="number"
-              v-model="tournament.max_participants"
-              min="2"
-              required
-            />
-          </div>
-
-          <div>
-            <label for="public">
-              <input
-                id="public"
-                type="checkbox"
-                v-model="tournament.public"
-              />
-              Public Tournament
-            </label>
-          </div>
-
-          <button
-            type="submit"
-            class="btn primary-btn"
-          >
-            Create Tournament
-          </button>
-        </form>
-      </div>
+      <router-link to="/tournaments/create" class="btn primary-btn">
+        Create a New Tournament
+      </router-link>
     </section>
   </div>
 </template>
@@ -187,18 +70,6 @@ export default {
       tournaments: [],
       registrations: [],
       isLoggedIn: false,
-      tournament: {
-        name: '',
-        description: '',
-        game: '',
-        format: 'single-elimination',
-        participant_type: 'individual',
-        start_date: '',
-        status: 'draft',
-        min_participants: 2,
-        max_participants: 16,
-        public: true,
-      },
     };
   },
   methods: {
@@ -211,52 +82,6 @@ export default {
         alert('Failed to fetch tournaments.');
       }
     },
-    async createTournament() {
-      try {
-        const response = await securedApi.post('/api/tournaments', {
-          name: this.tournament.name,
-          description: this.tournament.description,
-          game: this.tournament.game,
-          format: this.tournament.format,
-          participant_type: this.tournament.participant_type,
-          start_date: this.tournament.start_date ? new Date(this.tournament.start_date).toISOString() : '',
-          status: this.tournament.status,
-          min_participants: parseInt(this.tournament.min_participants),
-          max_participants: parseInt(this.tournament.max_participants),
-          public: this.tournament.public,
-        });
-
-        this.tournaments.push(response.data);
-
-        this.tournament = {
-          name: '',
-          description: '',
-          game: '',
-          format: 'single-elimination',
-          participant_type: 'individual',
-          start_date: '',
-          status: 'draft',
-          min_participants: 2,
-          max_participants: 16,
-          public: true,
-        };
-
-        alert('Tournament created successfully!');
-      } catch (error) {
-        console.error('Failed to create tournament:', error);
-        alert('Failed to create tournament.');
-      }
-    },
-    // async registerForTournament(tournamentId) {
-    //   try {
-    //     await securedApi.post(`/api/tournaments/${tournamentId}/register`);
-    //     this.registrations.push(tournamentId);
-    //     alert('Successfully registered for tournament!');
-    //   } catch (error) {
-    //     console.error('Failed to register for tournament:', error);
-    //     alert('Failed to register for tournament.');
-    //   }
-    // },
     isRegistered(tournamentId) {
       return this.registrations.includes(tournamentId);
     },
