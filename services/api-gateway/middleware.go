@@ -72,8 +72,19 @@ func AuthMiddleware(provider *oidc.Provider, userServiceURL string) echo.Middlew
 			// This is the unique ID from Keycloak (e.g., a UUID)
 			userID := idToken.Subject
 
+			var claims struct {
+                PreferredUsername string `json:"preferred_username"`
+                //Email             string `json:"email"` // Add if it becomes necessary.
+            }
+
+			// Extract claims into the struct
+            if err := idToken.Claims(&claims); err != nil {
+                return echo.NewHTTPError(http.StatusUnauthorized, "Failed to parse token claims")
+            }
+
 			// Inject Headers for downstream service
 			c.Request().Header.Set("X-User-Id", userID)
+			c.Request().Header.Set("X-User-Name", claims.PreferredUsername)
 
 			return next(c)
 		}

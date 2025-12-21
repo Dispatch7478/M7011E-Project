@@ -230,6 +230,7 @@ func RegisterTournamentHandler(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		tournamentID := c.Param("id")
 		userID := c.Request().Header.Get("X-User-Id")
+		userName := c.Request().Header.Get("X-User-Name")
 
 		if userID == "" {
 			return c.JSON(http.StatusUnauthorized, map[string]string{"error": "Missing authentication"})
@@ -241,9 +242,7 @@ func RegisterTournamentHandler(db *pgxpool.Pool) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
 		}
 		
-		if req.Name == "" {
-			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Participant name is required"})
-		}
+		
 
 		// 2. Fetch Tournament Details (Now including participant_type)
 		var t Tournament
@@ -258,6 +257,15 @@ func RegisterTournamentHandler(db *pgxpool.Pool) echo.HandlerFunc {
 			}
 			log.Printf("Database Query Error: %v", err)
 			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to check tournament details"})
+		}
+
+		// If Individual, prefer the secure username from the Gateway header
+		if t.ParticipantType == "individual" && userName != "" {
+			req.Name = userName
+		}
+
+		if req.Name == "" {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": "Participant name is required"})
 		}
 
 		// 3. Validation Checks
