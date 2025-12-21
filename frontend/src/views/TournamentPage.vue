@@ -20,31 +20,45 @@
             class="tournament-card"
           >
             <div class="tournament-main">
-              <h3 class="tournament-name">
-                {{ tournament.name }}
-              </h3>
-              <p class="tournament-meta">
-                <span>{{ tournament.current_participants }} / {{ tournament.max_participants }} participants</span>
-              </p>
+              <h3 class="tournament-name">{{ tournament.name }}</h3>
+              
+              <div class="tournament-meta">
+                <span>{{ tournament.game }}</span>
+                <span class="separator">•</span>
+                <span>{{ tournament.format }}</span>
+                <span class="separator">•</span>
+                <span class="badge" :class="tournament.participant_type">
+                  {{ tournament.participant_type }}
+                </span>
+              </div>
+              
+              <div class="participant-count">
+                <small>{{ tournament.current_participants }} / {{ tournament.max_participants }} filled</small>
+              </div>
             </div>
                 <div class="tournament-side">
                   <button
+                    v-if="['ongoing', 'completed'].includes(tournament.status)"
                     type="button"
                     class="btn-link"
                     @click="viewBracket(tournament.id)"
                   >
                     View Bracket
                   </button>
+
                   <button
-                    v-if="isLoggedIn && tournament.status === 'registration' && !isRegistered(tournament.id) && tournament.current_participants < tournament.max_participants"
+                    v-if="isLoggedIn && tournament.status === 'registration_open' 
+                    && !isRegistered(tournament.id) 
+                    && tournament.current_participants < tournament.max_participants"
                     type="button"
                     class="btn-link"
                     @click="registerForTournament(tournament.id)"
                   >
                     Register
                   </button>
-                  <span v-if="isRegistered(tournament.id)">Registered</span>
-                  <span v-else-if="tournament.current_participants >= tournament.max_participants" style="color: #dc3545; font-weight: bold;">Full</span>
+
+                  <span v-if="isRegistered(tournament.id)" class="status-text registered">Registered</span>
+                  <span v-else-if="tournament.current_participants >= tournament.max_participants" class="status-text full">Full</span>
                 </div>
               </div>
         </div>
@@ -85,6 +99,46 @@ export default {
     isRegistered(tournamentId) {
       return this.registrations.includes(tournamentId);
     },
+  async registerForTournament(tournament) {
+    try {
+      // Get Username directly from Keycloak Token
+      // The tokenParsed object contains the claims from the JWT.
+      const username = this.$keycloak.tokenParsed.preferred_username || "Unknown User";
+      
+      // Handle Team Logic (Temporarily Disabled)
+      if (tournament.participant_type === 'team') {
+        // Mirroring the Backend's 501 Not Implemented logic
+        alert("Team registration is temporarily disabled while we update our team architecture.");
+        return;
+      } 
+
+      // Individual Logic
+      // We only need to send the name; the backend gets the ID from the token header.
+      const payload = { 
+        name: username 
+      };
+
+      // Send Registration to Backend
+      await securedApi.post(`/api/tournaments/${tournament.id}/register`, payload);
+
+      // Update UI
+      this.registrations.push(tournament.id);
+      
+      // Update the participant count locally so to avoid a re-fetch of the whole list
+      const tIndex = this.tournaments.findIndex(t => t.id === tournament.id);
+      if (tIndex !== -1) {
+        this.tournaments[tIndex].current_participants += 1;
+      }
+      
+      alert('Successfully registered!');
+
+    } catch (error) {
+      console.error('Registration failed:', error);
+      // Display the specific error message from the backend (e.g., "Tournament is full")
+      const msg = error.response?.data?.error || 'Failed to register.';
+      alert(msg);
+    }
+  },
     viewBracket(tournamentId) {
       this.$router.push({ name: 'Bracket', params: { id: tournamentId } });
     },
@@ -253,5 +307,49 @@ select {
   .tournament-side {
     align-items: flex-start;
   }
+}
+
+.separator {
+  color: #ccc;
+  margin: 0 5px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: capitalize;
+  border: 1px solid transparent;
+}
+
+/* Specific colors for types */
+.badge.individual {
+  background-color: #e0f2fe;
+  color: #0369a1; /* Blue */
+}
+
+.badge.team {
+  background-color: #f3e8ff;
+  color: #7e22ce; /* Purple */
+}
+
+.participant-count {
+  margin-top: 5px;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.status-text {
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.status-text.full {
+  color: #dc3545;
+}
+
+.status-text.registered {
+  color: #198754;
 }
 </style>

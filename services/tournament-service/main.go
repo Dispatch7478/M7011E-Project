@@ -33,6 +33,7 @@ func main() {
 	// C. Routes
 	e.POST("/tournaments", CreateTournamentHandler(dbPool, rmq))
 	e.GET("/tournaments", GetAllTournamentsHandler(dbPool))
+	e.POST("/tournaments/:id/register", RegisterTournamentHandler(dbPool))
 	e.GET("/health", HealthCheckHandler)
 
 	// D. Start Server

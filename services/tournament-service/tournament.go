@@ -261,11 +261,7 @@ func RegisterTournamentHandler(db *pgxpool.Pool) echo.HandlerFunc {
 		}
 
 		// 3. Validation Checks
-		if !t.Public {
-			return c.JSON(http.StatusForbidden, map[string]string{"error": "Cannot register for private tournaments via public API"})
-		}
-
-		if t.Status != "registration" {
+		if t.Status != "registration_open" {
 			return c.JSON(http.StatusForbidden, map[string]string{"error": "Tournament is not open for registration"})
 		}
 
@@ -273,10 +269,13 @@ func RegisterTournamentHandler(db *pgxpool.Pool) echo.HandlerFunc {
 		var participantID string
 
 		if t.ParticipantType == "team" {
-			if req.TeamID == "" {
-				return c.JSON(http.StatusBadRequest, map[string]string{"error": "This is a team tournament. Team ID is required."})
-			}
-			participantID = req.TeamID
+			// if req.TeamID == "" {
+			// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "This is a team tournament. Team ID is required."})
+			// }
+			// participantID = req.TeamID
+			return c.JSON(http.StatusNotImplemented, map[string]string{
+                "error": "Team registration is not implemented",
+			})
 		} else {
 			// Default to Individual
 			participantID = userID
@@ -305,11 +304,7 @@ func RegisterTournamentHandler(db *pgxpool.Pool) echo.HandlerFunc {
 		if err != nil {
 			// Check for Postgres Unique Violation (Error Code 23505)
 			if err.Error() == "ERROR: duplicate key value violates unique constraint \"registrations_pkey\" (SQLSTATE 23505)" {
-				msg := "You are already registered"
-				if t.ParticipantType == "team" {
-					msg = "This team is already registered"
-				}
-				return c.JSON(http.StatusConflict, map[string]string{"error": msg})
+				return c.JSON(http.StatusConflict, map[string]string{"error": "You are already registered"})
 			}
 			
 			log.Printf("Database Insert Error: %v", err)
