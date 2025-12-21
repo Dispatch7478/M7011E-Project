@@ -18,7 +18,7 @@ CREATE TABLE tournaments (
     format VARCHAR(20) NOT NULL, -- 'single-elimination', etc.
     participant_type VARCHAR(20) NOT NULL DEFAULT 'individual', -- 'team' or 'individual'
     start_date TIMESTAMP WITH TIME ZONE,
-    status VARCHAR(20) DEFAULT 'draft',
+    status VARCHAR(20) DEFAULT 'draft', -- States: draft, registration_open, registration_closed, ongoing, completed, cancelled
     min_participants INT DEFAULT 2,
     max_participants INT DEFAULT 16,
     public BOOLEAN DEFAULT true
@@ -27,7 +27,7 @@ CREATE TABLE tournaments (
 
 **Design Choices:**
 
-*   **Status Flow:** The `status` column is the most important field in this table. It drives the logic of the entire tournament flow. For example, teams can only register for a tournament when the `status` is `registration`, and the bracket cannot be generated until the `status` is `active`.
+*   **Status Flow:** The `status` column drives the tournament lifecycle. The expected flow is: `draft` -> `registration_open` -> `registration_closed` -> `ongoing` -> `completed`. A tournament can also be moved to `cancelled` from any state.
 
 ### `registrations` Table
 
