@@ -38,7 +38,7 @@
             </div>
                 <div class="tournament-actions">
                   <button
-                    v-if="isLoggedIn"
+                    v-if="isOrganizer(tournament)"
                     type="button"
                     class="btn-link"
                     @click="selectNewStatus(tournament)"
@@ -181,6 +181,18 @@ export default {
       const msg = error.response?.data?.error || 'Failed to update tournament status.';
       alert(`Status update failed: ${msg}`);
     }
+  },
+  isOrganizer(tournament) {
+    // 1. Check if user is logged in
+    if (!this.isLoggedIn || !this.$keycloak.tokenParsed) {
+      return false;
+    }
+    
+    // 2. Get current User ID (subject) from Keycloak
+    const currentUserId = this.$keycloak.tokenParsed.sub;
+    
+    // 3. Compare with Tournament Organizer
+    return currentUserId === tournament.organizer_id;
   },
   },
   created() {
