@@ -14,3 +14,8 @@ services:
     proxy:
       path: "/api/teams"
       rewrite: "/teams"
+  - name: "bracket-service"
+    url: "http://bracket-service.t-hub-dev.svc.cluster.local:8080"
+    proxy:
+      path: "/api/brackets"
+      rewrite: "/brackets"
