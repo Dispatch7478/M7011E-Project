@@ -37,6 +37,15 @@
               </div>
             </div>
                 <div class="tournament-actions">
+                  <!-- Temporary until the page to edit specific tournaments is ready -->
+                  <button
+                    v-if="isOrganizer(tournament) && tournament.status === 'registration_closed'"
+                    type="button"
+                    class="btn-link"
+                    @click="generateBracket(tournament)"
+                  >
+                    Generate Bracket
+                  </button>
                   <button
                     v-if="isOrganizer(tournament)"
                     type="button"
@@ -108,97 +117,119 @@ export default {
     isRegistered(tournamentId) {
       return this.registrations.includes(tournamentId);
     },
-  async registerForTournament(tournament) {
-    try {
-      // Get Username directly from Keycloak Token
-      // The tokenParsed object contains the claims from the JWT.
-      const username = this.$keycloak.tokenParsed.preferred_username || "Unknown User";
+    async registerForTournament(tournament) {
+      try {
+        // Get Username directly from Keycloak Token
+        // The tokenParsed object contains the claims from the JWT.
+        const username = this.$keycloak.tokenParsed.preferred_username || "Unknown User";
+        
+        // Handle Team Logic (Temporarily Disabled)
+        if (tournament.participant_type === 'team') {
+          // Mirroring the Backend's 501 Not Implemented logic
+          alert("Team registration is temporarily disabled while we update our team architecture.");
+          return;
+        } 
+
+        // Individual Logic: the backend gets the ID from the token header and the name from the jwt claims.
+        const payload = { };
+
+        // Send Registration to Backend
+        await securedApi.post(`/api/tournaments/${tournament.id}/register`, payload);
+
+        // Update UI
+        this.registrations.push(tournament.id);
+        
+        // Update the participant count locally so to avoid a re-fetch of the whole list
+        const tIndex = this.tournaments.findIndex(t => t.id === tournament.id);
+        if (tIndex !== -1) {
+          this.tournaments[tIndex].current_participants += 1;
+        }
+        
+        alert('Successfully registered!');
+
+      } catch (error) {
+        console.error('Registration failed:', error);
+        // Display the specific error message from the backend (e.g., "Tournament is full")
+        const msg = error.response?.data?.error || 'Failed to register.';
+        alert(msg);
+      }
+    },
+    viewBracket(tournamentId) {
+        this.$router.push({ name: 'Bracket', params: { id: tournamentId } });
+      },
+    async selectNewStatus(tournament) {
+      const validStatuses = ['draft', 'registration_open', 'registration_closed', 'ongoing', 'completed', 'cancelled'];
+      const promptMessage = `Enter new status for "${tournament.name}".\n\nValid options: ${validStatuses.join(', ')}`;
       
-      // Handle Team Logic (Temporarily Disabled)
-      if (tournament.participant_type === 'team') {
-        // Mirroring the Backend's 501 Not Implemented logic
-        alert("Team registration is temporarily disabled while we update our team architecture.");
+      const newStatus = prompt(promptMessage, tournament.status);
+
+      if (newStatus === null) {
+        // User cancelled the prompt
         return;
-      } 
+      }
 
-      // Individual Logic: the backend gets the ID from the token header and the name from the jwt claims.
-      const payload = { };
+      if (newStatus.trim() === tournament.status) {
+        // No change
+        return;
+      }
 
-      // Send Registration to Backend
-      await securedApi.post(`/api/tournaments/${tournament.id}/register`, payload);
-
-      // Update UI
-      this.registrations.push(tournament.id);
-      
-      // Update the participant count locally so to avoid a re-fetch of the whole list
-      const tIndex = this.tournaments.findIndex(t => t.id === tournament.id);
-      if (tIndex !== -1) {
-        this.tournaments[tIndex].current_participants += 1;
+      if (validStatuses.includes(newStatus.trim())) {
+        await this.updateTournamentStatus(tournament.id, newStatus.trim());
+      } else {
+        alert(`Invalid status: "${newStatus}". Please enter one of the valid options.`);
+      }
+    },
+    async updateTournamentStatus(tournamentId, newStatus) {
+      try {
+        await securedApi.patch(`/api/tournaments/${tournamentId}/status`, {
+          status: newStatus
+        });
+        alert("Status updated successfully!");
+        this.getTournaments(); // Refresh the list to show updated status
+      } catch (error) {
+        console.error("Update failed:", error);
+        const msg = error.response?.data?.error || 'Failed to update tournament status.';
+        alert(`Status update failed: ${msg}`);
+      }
+    },
+    isOrganizer(tournament) {
+      // 1. Check if user is logged in
+      if (!this.isLoggedIn || !this.$keycloak.tokenParsed) {
+        return false;
       }
       
-      alert('Successfully registered!');
-
-    } catch (error) {
-      console.error('Registration failed:', error);
-      // Display the specific error message from the backend (e.g., "Tournament is full")
-      const msg = error.response?.data?.error || 'Failed to register.';
-      alert(msg);
-    }
-  },
-  viewBracket(tournamentId) {
-      this.$router.push({ name: 'Bracket', params: { id: tournamentId } });
+      // 2. Get current User ID (subject) from Keycloak
+      const currentUserId = this.$keycloak.tokenParsed.sub;
+      
+      // 3. Compare with Tournament Organizer
+      return currentUserId === tournament.organizer_id;
     },
-  async selectNewStatus(tournament) {
-    const validStatuses = ['draft', 'registration_open', 'registration_closed', 'ongoing', 'completed', 'cancelled'];
-    const promptMessage = `Enter new status for "${tournament.name}".\n\nValid options: ${validStatuses.join(', ')}`;
-    
-    const newStatus = prompt(promptMessage, tournament.status);
+    async generateBracket(tournament) {
+      if (!confirm(`Are you sure you want to generate the bracket for "${tournament.name}"? This action cannot be undone.`)) {
+        return;
+      }
 
-    if (newStatus === null) {
-      // User cancelled the prompt
-      return;
-    }
+      try {
+        // 1. Call Bracket Service
+        // Note: We use query param ?tournament_id=... to match your backend handler
+        await securedApi.post(`/api/brackets/generate?tournament_id=${tournament.id}`);
+        
+        alert("Bracket generated successfully!");
 
-    if (newStatus.trim() === tournament.status) {
-      // No change
-      return;
-    }
+        // 2. Auto-start the tournament (Update status to 'ongoing')
+        // This makes the "View Bracket" button visible immediately.
+        await this.updateTournamentStatus(tournament.id, 'ongoing');
 
-    if (validStatuses.includes(newStatus.trim())) {
-      await this.updateTournamentStatus(tournament.id, newStatus.trim());
-    } else {
-      alert(`Invalid status: "${newStatus}". Please enter one of the valid options.`);
-    }
-  },
-  async updateTournamentStatus(tournamentId, newStatus) {
-    try {
-      await securedApi.patch(`/api/tournaments/${tournamentId}/status`, {
-        status: newStatus
-      });
-      alert("Status updated successfully!");
-      this.getTournaments(); // Refresh the list to show updated status
-    } catch (error) {
-      console.error("Update failed:", error);
-      const msg = error.response?.data?.error || 'Failed to update tournament status.';
-      alert(`Status update failed: ${msg}`);
-    }
-  },
-  isOrganizer(tournament) {
-    // 1. Check if user is logged in
-    if (!this.isLoggedIn || !this.$keycloak.tokenParsed) {
-      return false;
-    }
-    
-    // 2. Get current User ID (subject) from Keycloak
-    const currentUserId = this.$keycloak.tokenParsed.sub;
-    
-    // 3. Compare with Tournament Organizer
-    return currentUserId === tournament.organizer_id;
-  },
-  },
-  created() {
-    this.isLoggedIn = this.$keycloak && this.$keycloak.authenticated;
-    this.getTournaments();
+      } catch (error) {
+        console.error("Bracket generation failed:", error);
+        const msg = error.response?.data?.error || "Failed to generate bracket.";
+        alert(`Error: ${msg}`);
+      }
+    },
+    created() {
+      this.isLoggedIn = this.$keycloak && this.$keycloak.authenticated;
+      this.getTournaments();
+    },
   },
 };
 </script>
