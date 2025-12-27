@@ -39,8 +39,8 @@ func main() {
 	e.POST("/tournaments/:id/register", RegisterTournamentHandler(dbPool))
 	// Updaters
 	e.PATCH("/tournaments/:id/status", UpdateTournamentStatusHandler(dbPool, rmq))
-	e.GET("/api/tournaments/:id", GetTournamentHandler(dbPool))
-	e.PUT("/api/tournaments/:id", UpdateTournamentDetailsHandler(dbPool, rmq))
+	e.GET("/tournaments/:id", GetTournamentHandler(dbPool))
+	e.PUT("/tournaments/:id", UpdateTournamentDetailsHandler(dbPool, rmq))
 
 
 	// Start Server
