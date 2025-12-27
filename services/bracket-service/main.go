@@ -30,7 +30,7 @@ func main() {
 	tournamentServiceURL := os.Getenv("TOURNAMENT_SERVICE_URL") 
     if tournamentServiceURL == "" {
         // Fallback for local dev or hardcoded if prefered for MVP
-        tournamentServiceURL = "[http://tournament-service.t-hub-dev.svc.cluster.local:8080](http://tournament-service.t-hub-dev.svc.cluster.local:8080)"
+        tournamentServiceURL = "http://tournament-service.t-hub-dev.svc.cluster.local:8080"
     }
 
 	// 4. Echo Setup
@@ -40,7 +40,7 @@ func main() {
     
     // CORS (Important for Frontend access)
     e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{"[https://t-hub.ltu-m7011e-4.se](https://t-hub.ltu-m7011e-4.se)"}, 
+		AllowOrigins: []string{"https://t-hub.ltu-m7011e-4.se"}, 
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
 	}))
 
